@@ -1,32 +1,33 @@
+const config: any = process.env.config || {}
 /* CONFIGURATION STARTS HERE */
+const PROTOCOL = config?.PROTOCOL || 'http'
 
 /* Step 1: enter your domain name like fruitionsite.com */
-const MY_DOMAIN = 'share-now.bonos.work';
+const MY_DOMAIN = config?.MY_DOMAIN || '127.0.0.1:8787';
 
 /*
   * Step 2: enter your URL slug to page ID mapping
   * The key on the left is the slug (without the slash)
   * The value on the right is the Notion page ID
   */
-const SLUG_TO_PAGE = {
-  'help': '9f7c8bad35db4875b9dbb09869640bd3',
-};
+const SLUG_TO_PAGE: Record<string, string> = config?.SLUG_TO_PAGE || {}
 
 /* Step 3: enter your page title and description for SEO purposes */
-const PAGE_TITLE = 'ShareNowについて';
-const PAGE_DESCRIPTION = '';
+const PAGE_TITLE: string = config?.PAGE_TITLE || '';
+const PAGE_DESCRIPTION: string = config?.PAGE_DESCRIPTION || '';
 
 /* Step 4: enter a Google Font name, you can choose from https://fonts.google.com */
-const GOOGLE_FONT = '';
+const GOOGLE_FONT: string = config?.GOOGLE_FONT || '';
 
 /* Step 5: enter any custom scripts you'd like */
-const CUSTOM_SCRIPT = ``;
+const CUSTOM_SCRIPT: string = config?.CUSTOM_SCRIPT || ``;
 
 /* CONFIGURATION ENDS HERE */
+type Slugs = keyof typeof SLUG_TO_PAGE
 
-const PAGE_TO_SLUG = {};
-const slugs = [];
-const pages = [];
+const PAGE_TO_SLUG: Record<string, string> = {};
+const slugs: Array<Slugs> = [];
+const pages: string[] = [];
 Object.keys(SLUG_TO_PAGE).forEach(slug => {
   const page = SLUG_TO_PAGE[slug];
   slugs.push(slug);
@@ -43,7 +44,7 @@ function generateSitemap() {
   slugs.forEach(
     (slug) =>
       (sitemap +=
-        '<url><loc>https://' + MY_DOMAIN + '/' + slug + '</loc></url>')
+        '<url><loc>' + PROTOCOL + '://' + MY_DOMAIN + '/' + slug + '</loc></url>')
   );
   sitemap += '</urlset>';
   return sitemap;
@@ -55,7 +56,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-function handleOptions(request) {
+function handleOptions(request: Request) {
   if (request.headers.get('Origin') !== null &&
     request.headers.get('Access-Control-Request-Method') !== null &&
     request.headers.get('Access-Control-Request-Headers') !== null) {
@@ -73,14 +74,14 @@ function handleOptions(request) {
   }
 }
 
-async function fetchAndApply(request) {
+async function fetchAndApply(request: Request) {
   if (request.method === 'OPTIONS') {
     return handleOptions(request);
   }
   let url = new URL(request.url);
   url.hostname = 'www.notion.so';
   if (url.pathname === '/robots.txt') {
-    return new Response('Sitemap: https://' + MY_DOMAIN + '/sitemap.xml');
+    return new Response('Sitemap: ' + PROTOCOL + '://' + MY_DOMAIN + '/sitemap.xml');
   }
   if (url.pathname === '/sitemap.xml') {
     let response = new Response(generateSitemap());
@@ -109,7 +110,7 @@ async function fetchAndApply(request) {
     return response;
   } else if (slugs.indexOf(url.pathname.slice(1)) > -1) {
     const pageId = SLUG_TO_PAGE[url.pathname.slice(1)];
-    return Response.redirect('https://' + MY_DOMAIN + '/' + pageId, 301);
+    return Response.redirect(PROTOCOL + '://' + MY_DOMAIN + '/' + pageId, 301);
   } else {
     response = await fetch(url.toString(), {
       body: request.body,
@@ -125,7 +126,7 @@ async function fetchAndApply(request) {
 }
 
 class MetaRewriter {
-  element(element) {
+  element(element: Element) {
     if (PAGE_TITLE !== '') {
       if (element.getAttribute('property') === 'og:title'
         || element.getAttribute('name') === 'twitter:title') {
@@ -153,7 +154,7 @@ class MetaRewriter {
 }
 
 class HeadRewriter {
-  element(element) {
+  element(element: Element) {
     if (GOOGLE_FONT !== '') {
       element.append(`<link href="https://fonts.googleapis.com/css?family=${GOOGLE_FONT.replace(' ', '+')}:Regular,Bold,Italic&display=swap" rel="stylesheet">
       <style>* { font-family: "${GOOGLE_FONT}" !important; }</style>`, {
@@ -176,13 +177,14 @@ class HeadRewriter {
 }
 
 class BodyRewriter {
-  constructor(SLUG_TO_PAGE) {
+  SLUG_TO_PAGE: Record<string, string>;
+  constructor(SLUG_TO_PAGE: Record<string, string>) {
     this.SLUG_TO_PAGE = SLUG_TO_PAGE;
   }
-  element(element) {
+  element(element: Element) {
     element.append(`<div style="display:none">Powered by <a href="http://fruitionsite.com">Fruition</a></div>
     <script>
-    window.CONFIG.domainBaseUrl = 'https://${MY_DOMAIN}';
+    window.CONFIG.domainBaseUrl = '${PROTOCOL}://${MY_DOMAIN}';
     const SLUG_TO_PAGE = ${JSON.stringify(this.SLUG_TO_PAGE)};
     const PAGE_TO_SLUG = {};
     const slugs = [];
@@ -282,7 +284,7 @@ class BodyRewriter {
   }
 }
 
-async function appendJavascript(res, SLUG_TO_PAGE) {
+async function appendJavascript(res: Response, SLUG_TO_PAGE: Record<string, string>) {
   return new HTMLRewriter()
     .on('title', new MetaRewriter())
     .on('meta', new MetaRewriter())

@@ -1,0 +1,13 @@
+// development.json, production.jsonを作成してください
+{
+  "PROTOCOL": "https",
+  "MY_DOMAIN": "YOUR_DOMAIN",
+  "SLUG_TO_PAGE": {
+    "": "SHARE_PAGE_ID",
+    "help": "9f7c8bad35db4875b9dbb09869640b3"
+  },
+  "PAGE_TITLE": "",
+  "PAGE_DESCRIPTION": "",
+  "GOOGLE_FONT": "",
+  "CUSTOM_SCRIPT": ""
+}
