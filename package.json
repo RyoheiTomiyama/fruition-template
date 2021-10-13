@@ -1,11 +1,12 @@
 {
-  "name": "worker-typescript-template",
+  "name": "fruition-template",
   "version": "1.0.0",
-  "description": "Cloudflare worker TypeScript template",
+  "description": "Cloudflare worker Fruition template",
   "main": "dist/worker.js",
   "scripts": {
     "dev": "NODE_ENV=development npx @cloudflare/wrangler dev",
-    "build": "webpack",
+    "build": "NODE_ENV=production webpack",
+    "deploy": "source export_config.sh config/production.json && npx @cloudflare/wrangler publish",
     "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
     "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
     "test": "jest --config jestconfig.json --verbose"
