@@ -7,6 +7,6 @@ workers_dev = true
 compatibility_date = "2021-10-13"
 
 [build]
-command = "npm install && npm run build"
+command = "npm install --production=false && npm run build"
 [build.upload]
 format = "service-worker"
