@@ -90,10 +90,16 @@ async function fetchAndApply(request: Request) {
   }
   let response;
   if (url.pathname.startsWith('/app') && url.pathname.endsWith('js')) {
-    response = await fetch(url.toString());
+    response = await fetch(url.toString(), {
+      body: request.body,
+      headers: request.headers,
+      method: request.method,
+    });
     let body = await response.text();
     response = new Response(body.replace(/www.notion.so/g, MY_DOMAIN).replace(/notion.so/g, MY_DOMAIN), response);
     response.headers.set('Content-Type', 'application/x-javascript');
+    response.headers.delete('Content-Security-Policy');
+    response.headers.delete('X-Content-Security-Policy');
     return response;
   } else if ((url.pathname.startsWith('/api'))) {
     // Forward API
